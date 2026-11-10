@@ -129,7 +129,7 @@ vlan 10
  name LAN
 exit
 
-interface range EgabitEthernet0/0 - 3
+interface range Ethernet0/0 - 3
  switchport mode access
  switchport access vlan 10
  spanning-tree portfast
@@ -160,7 +160,7 @@ hostname R1
 no ip domain-lookup
 ip domain-name itla.local
 
-interface EgabitEthernet0/0
+interface Ethernet0/0
  description LAN
  ip address 10.7.30.2 255.255.255.0
  ip tcp adjust-mss 1420
@@ -168,7 +168,7 @@ interface EgabitEthernet0/0
  no shutdown
 exit
 
-interface EgabitEthernet0/1
+interface Ethernet0/1
  description ISP
  ip address 202.50.73.10 255.255.255.0
  ip nat outside
@@ -189,7 +189,7 @@ ip access-list standard NAT-LAN
  permit 10.7.30.0 0.0.0.255
 exit
 
-ip nat inside source list NAT-LAN interface EgabitEthernet0/1 overload
+ip nat inside source list NAT-LAN interface Ethernet0/1 overload
 ip route 0.0.0.0 0.0.0.0 202.50.73.2
 
 end
