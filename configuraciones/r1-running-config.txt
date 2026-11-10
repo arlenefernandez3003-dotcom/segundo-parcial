@@ -1,0 +1,183 @@
+Current configuration : 3042 bytes
+!
+! Last configuration change at 15:52:17 UTC Tue Nov 10 2026 by user-admin
+!
+version 15.4
+service config
+service timestamps debug datetime msec localtime show-timezone
+service timestamps log datetime msec localtime show-timezone
+no service password-encryption
+!
+hostname R1
+!
+boot-start-marker
+boot-end-marker
+!
+aqm-register-fnf
+!
+security authentication failure rate 3 log
+logging buffered 64000 informational
+enable secret 5 $1$8vAm$Hfo5HZcNeeBo6AjSZqAXd/
+!
+aaa new-model
+!
+!
+aaa group server radius NPS-GROUP
+ server name NPS
+ ip radius source-interface Ethernet0/0
+!
+aaa authentication login default local
+aaa authentication login CON-AAA group NPS-GROUP local
+aaa authentication login VTY-LOCAL local
+aaa authentication enable default enable
+aaa authorization console
+aaa authorization exec CON-AAA group NPS-GROUP local
+aaa authorization exec VTY-LOCAL local
+aaa accounting exec CON-AAA start-stop group NPS-GROUP
+!
+!
+!
+!
+!
+aaa session-id common
+mmi polling-interval 60
+no mmi auto-configure
+no mmi pvc
+mmi snmp-timeout 180
+!
+!
+!
+!
+!
+!
+
+
+!
+ip dhcp excluded-address 10.7.30.1 10.7.30.9
+ip dhcp excluded-address 10.7.30.201 10.7.30.254
+!
+ip dhcp pool LAN-POOL
+ network 10.7.30.0 255.255.255.0
+ default-router 10.7.30.2
+ dns-server 8.8.8.8 8.8.4.4
+!
+ip dhcp pool ZBX-RESERVA
+ host 10.7.30.253 255.255.255.0
+ client-identifier 0100.0c29.6fdc.05
+ default-router 10.7.30.2
+ dns-server 8.8.8.8 8.8.4.4
+!
+!
+!
+no ip domain lookup
+ip domain name itla.local
+ip cef
+login on-failure log
+login on-success log
+no ipv6 cef
+!
+multilink bundle-name authenticated
+!
+!
+!
+!
+!
+!
+!
+!
+username admin-local privilege 15 secret 5 $1$3xdT$qoLYCYMmX5xqZHwzbSsGV.
+!
+redundancy
+!
+!
+ip ssh version 2
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+interface Ethernet0/0
+ description LAN
+ ip address 10.7.30.2 255.255.255.0
+ ip nat inside
+ ip virtual-reassembly in
+ ip tcp adjust-mss 1420
+!
+interface Ethernet0/1
+ description ISP
+ ip address 202.50.73.10 255.255.255.0
+ ip nat outside
+ ip virtual-reassembly in
+!
+interface Ethernet0/2
+ no ip address
+ shutdown
+!
+interface Ethernet0/3
+ no ip address
+ shutdown
+!
+ip forward-protocol nd
+!
+!
+ip http server
+no ip http secure-server
+ip nat inside source list NAT-LAN interface Ethernet0/1 overload
+ip route 0.0.0.0 0.0.0.0 202.50.73.2
+!
+ip access-list standard MGMT-SSH
+ permit 10.7.30.4
+ permit 10.7.30.253
+ deny   any log
+ip access-list standard NAT-LAN
+ permit 10.7.30.0 0.0.0.255
+ip access-list standard SNMP-ZABBIX
+ permit 10.7.30.253
+ deny   any log
+!
+!
+snmp-server community zbx-ro-0730 RO SNMP-ZABBIX
+snmp-server location Laboratorio-ITLA-2025-0730
+snmp-server contact Arlene Fernandez Herrera
+!
+!
+!
+radius server NPS
+ address ipv4 10.7.30.4 auth-port 1812 acct-port 1813
+ timeout 5
+ retransmit 2
+ key R4dius-Rtr-2026!
+!
+!
+control-plane
+!
+!
+!
+!
+!
+!
+!
+!
+line con 0
+ exec-timeout 5 0
+ authorization exec CON-AAA
+ accounting exec CON-AAA
+ logging synchronous
+ login authentication CON-AAA
+line aux 0
+line vty 0 4
+ access-class MGMT-SSH in
+ authorization exec VTY-LOCAL
+ login authentication VTY-LOCAL
+ transport input ssh
+!
+!
+end
