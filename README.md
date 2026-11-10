@@ -442,7 +442,7 @@ crypto key generate rsa modulus 2048
 ip ssh version 2
 
 line vty 0 4
- loEn local
+ login local
  transport input ssh
 exit
 
