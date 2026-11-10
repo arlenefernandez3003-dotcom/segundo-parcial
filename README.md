@@ -474,7 +474,7 @@ En cada equipo, `show ip ssh` indica `SSH Enabled - version 2.0` y `show running
 configure terminal
 
 aaa new-model
-aaa authentication loEn default local
+aaa authentication login default local
 
 radius server NPS
  address ipv4 10.7.30.4 auth-port 1812 acct-port 1813
@@ -485,7 +485,7 @@ exit
 
 aaa group server radius NPS-GROUP
  server name NPS
- ip radius source-interface EgabitEthernet0/0
+ ip radius source-interface Ethernet0/0
 exit
 
 end
