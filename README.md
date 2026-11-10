@@ -280,14 +280,14 @@ auditpol /set /subcategory:"{0CCE9243-69AE-11D9-BED3-505054503030}" /success:ena
 ip -br link show ens33
 ```
 
-El identificador de cliente es `01` seguido de la MAC (para `00:0c:29:ab:cd:ef` es `0100.0c29.abcd.ef`). En el router, con la MAC real:
+El identificador de cliente es `01` seguido de la MAC (para `00:0c:29:6f:dc:05` es `0100.0c29.6fdc.05`). En el router, con la MAC real:
 
 ```bash
 configure terminal
 
 ip dhcp pool ZBX-RESERVA
  host 10.7.30.253 255.255.255.0
- client-identifier 0100.0c29.abcd.ef
+ client-identifier 0100.0c29.6fdc.05
  default-router 10.7.30.2
  dns-server 8.8.8.8 8.8.4.4
 exit
