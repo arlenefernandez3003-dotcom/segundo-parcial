@@ -423,7 +423,7 @@ ip access-list standard MGMT-SSH
 exit
 
 line vty 0 4
- loEn local
+ login local
  transport input ssh
  access-class MGMT-SSH in
 exit
