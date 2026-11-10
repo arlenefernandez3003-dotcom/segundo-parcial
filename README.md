@@ -504,8 +504,8 @@ Debe responder `User successfully authenticated`.
 ```bash
 configure terminal
 
-aaa authentication loEn CON-AAA group NPS-GROUP local
-aaa authentication loEn VTY-LOCAL local
+aaa authentication login CON-AAA group NPS-GROUP local
+aaa authentication login VTY-LOCAL local
 aaa authentication enable default enable
 aaa authorization console
 aaa authorization exec CON-AAA group NPS-GROUP local
@@ -516,22 +516,22 @@ enable secret Enable-Lab#2026
 
 line con 0
  exec-timeout 5 0
- logEng synchronous
- loEn authentication CON-AAA
+ login synchronous
+ login authentication CON-AAA
  authorization exec CON-AAA
  accounting exec CON-AAA
 exit
 
 line vty 0 4
- loEn authentication VTY-LOCAL
+ login authentication VTY-LOCAL
  authorization exec VTY-LOCAL
 exit
 
 service timestamps log datetime msec localtime show-timezone
 service timestamps debug datetime msec localtime show-timezone
-logEng buffered 64000 informational
-loEn on-success log
-loEn on-failure log
+login buffered 64000 informational
+login on-success log
+login on-failure log
 security authentication failure rate 3 log
 
 end
@@ -555,7 +555,7 @@ Se apagan con `undebug all`.
 3. Ver los reEstros:
 
 ```bash
-show logEng
+show login
 show aaa servers
 ```
 
