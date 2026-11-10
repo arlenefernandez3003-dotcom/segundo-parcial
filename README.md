@@ -15,7 +15,7 @@
 ## Contenido
 
 1. [Propósito](#1-propósito)
-2. [Topología y direccionamiento](#2-topología-y-direccionamiento)
+2. [TopoloEa y direccionamiento](#2-topoloEa-y-direccionamiento)
 3. [Implementación](#3-implementación)
 4. [Cumplimiento de requisitos](#4-cumplimiento-de-requisitos)
 5. [Estructura del repositorio](#5-estructura-del-repositorio)
@@ -30,41 +30,41 @@ Esta práctica implementa una red LAN con un router y un switch Cisco, un servid
 * **DHCP** en el router y salida al ISP con **ruta por defecto y NAT**.
 * **SNMP de solo lectura** en el router, monitoreado desde **Zabbix**.
 * Acceso administrativo por **SSH** con usuario local de contraseña cifrada, sin Telnet.
-* **AAA con RADIUS (NPS)** en el router, con registros de accesos exitosos y fallidos.
+* **AAA con RADIUS (NPS)** en el router, con reEstros de accesos exitosos y fallidos.
 * **Hardening CIS** del switch con un script que genera un informe posterior a la aplicación.
 
 ---
 
-## 2. Topología y direccionamiento
+## 2. TopoloEa y direccionamiento
 
 La LAN sale de `10.7.30.0/24` (matrícula 0730). No se usa la primera IP utilizable: el router usa la segunda (`10.7.30.2`). La red del ISP es `202.50.73.0/24` (NAT de VMware, VMnet8).
 
-![Topología en PNETLab](imagenes/00_topologia.png)
+![TopoloEa en PNETLab](imagenes/00_topoloEa.png)
 
 ```
                   ISP · NAT de VMware (VMnet8)
                   202.50.73.0/24 · GW 202.50.73.2
                               │
-                       Gi0/1: 202.50.73.10
+                       E0/1: 202.50.73.10
                       ┌───────┴───────┐
                       │      R1       │
                       │  Router Cisco │
                       └───────┬───────┘
-                       Gi0/0: 10.7.30.2
+                       E0/0: 10.7.30.2
                               │
-                       Gi0/0 │
+                         E0/0 │
                       ┌───────┴───────┐
                       │      SW1      │
                       │ IOSvL2 · Vlan10│
                       │  10.7.30.3    │
                       └─┬─────┬─────┬─┘
-                    Gi0/1│  Gi0/2│  Gi0/3│
-                  ┌──────┘     │       └───────┐
-           ┌──────┴─────┐ ┌────┴───────┐ ┌─────┴──────┐
-           │  PC-USER   │ │  AAA-SRV   │ │  ZBX-SRV   │
-           │   DHCP     │ │ 10.7.30.4  │ │10.7.30.253 │
-           │            │ │ AD DS + NPS│ │   Zabbix   │
-           └────────────┘ └────────────┘ └────────────┘
+                    E0/1│ E0/2│ E0/3│
+                 ┌──────┘     │     └─────────┐
+          ┌──────┴─────┐ ┌────┴───────┐ ┌─────┴──────┐
+          │  PC-USER   │ │  AAA-SRV   │ │  ZBX-SRV   │
+          │   DHCP     │ │ 10.7.30.4  │ │10.7.30.253 │
+          │            │ │ AD DS + NPS│ │   Zabbix   │
+          └────────────┘ └────────────┘ └────────────┘
 
   SNMP v2c (UDP 161):   ZBX-SRV ───► R1
   RADIUS (UDP 1812/1813): R1 ───► AAA-SRV
@@ -75,8 +75,8 @@ La LAN sale de `10.7.30.0/24` (matrícula 0730). No se usa la primera IP utiliza
 
 | Dispositivo | Hostname | Interfaz | IP | Máscara | Gateway | Método |
 |---|---|---|---|---|---|---|
-| Router Cisco | `R1` | Gi0/0 | 10.7.30.2 | /24 | — | Estática |
-| Router Cisco | `R1` | Gi0/1 | 202.50.73.10 | /24 | 202.50.73.2 | Estática |
+| Router Cisco | `R1` | E0/0 | 10.7.30.2 | /24 | — | Estática |
+| Router Cisco | `R1` | E0/1 | 202.50.73.10 | /24 | 202.50.73.2 | Estática |
 | Switch Cisco IOSvL2 | `SW1` | Vlan10 | 10.7.30.3 | /24 | 10.7.30.2 | Estática |
 | Windows Server 2022 | `AAA-SRV` | Ethernet0 | 10.7.30.4 | /24 | 10.7.30.2 | Estática |
 | Servidor Zabbix (Ubuntu 24.04) | `ZBX-SRV` | ens33 | 10.7.30.253 | /24 | 10.7.30.2 | DHCP (reserva) |
@@ -86,10 +86,10 @@ La LAN sale de `10.7.30.0/24` (matrícula 0730). No se usa la primera IP utiliza
 
 | Puerto | VLAN | Conectado a |
 |---|---|---|
-| Gi0/0 | 10 | R1 `Gi0/0` |
-| Gi0/1 | 10 | PC-USER |
-| Gi0/2 | 10 | AAA-SRV |
-| Gi0/3 | 10 | ZBX-SRV |
+| E0/0 | 10 | R1 `E0/0` |
+| E0/1 | 10 | PC-USER |
+| E0/2 | 10 | AAA-SRV |
+| E0/3 | 10 | ZBX-SRV |
 
 ### 2.3 Parámetros de servicios
 
@@ -112,7 +112,7 @@ La LAN sale de `10.7.30.0/24` (matrícula 0730). No se usa la primera IP utiliza
 
 ### 3.1 Red virtual en VMware
 
-Red NAT `VMnet8`: subred `202.50.73.0/24`, gateway NAT `202.50.73.2`. Cada máquina virtual (AAA-SRV, ZBX-SRV y PC-USER) usa su propia red **Host-only** sin DHCP de VMware, enlazada a PNETLab con un nodo Cloud, y entra a `SW1` por un solo cable. Una nube adicional, `Nube-ISP`, conecta `Gi0/1` de `R1` a `VMnet8`.
+Red NAT `VMnet8`: subred `202.50.73.0/24`, gateway NAT `202.50.73.2`. Cada máquina virtual (AAA-SRV, ZBX-SRV y PC-USER) usa su propia red **Host-only** sin DHCP de VMware, enlazada a PNETLab con un nodo Cloud, y entra a `SW1` por un solo cable. Una nube adicional, `Nube-ISP`, conecta `E0/1` de `R1` a `VMnet8`.
 
 ### 3.2 Switch SW1: red base
 
@@ -129,7 +129,7 @@ vlan 10
  name LAN
 exit
 
-interface range GigabitEthernet0/0 - 3
+interface range EgabitEthernet0/0 - 3
  switchport mode access
  switchport access vlan 10
  spanning-tree portfast
@@ -160,7 +160,7 @@ hostname R1
 no ip domain-lookup
 ip domain-name itla.local
 
-interface GigabitEthernet0/0
+interface EgabitEthernet0/0
  description LAN
  ip address 10.7.30.2 255.255.255.0
  ip tcp adjust-mss 1420
@@ -168,7 +168,7 @@ interface GigabitEthernet0/0
  no shutdown
 exit
 
-interface GigabitEthernet0/1
+interface EgabitEthernet0/1
  description ISP
  ip address 202.50.73.10 255.255.255.0
  ip nat outside
@@ -189,7 +189,7 @@ ip access-list standard NAT-LAN
  permit 10.7.30.0 0.0.0.255
 exit
 
-ip nat inside source list NAT-LAN interface GigabitEthernet0/1 overload
+ip nat inside source list NAT-LAN interface EgabitEthernet0/1 overload
 ip route 0.0.0.0 0.0.0.0 202.50.73.2
 
 end
@@ -243,7 +243,7 @@ Add-ADGroupMember -Identity "Admins-Red" -Members "user-admin"
 
 ```powershell
 Install-WindowsFeature NPAS -IncludeManagementTools
-netsh nps add registeredserver
+netsh nps add reEsteredserver
 New-NpsRadiusClient -Name "R1" -Address "10.7.30.2" -SharedSecret "R4dius-Rtr-2026!"
 
 Get-NetFirewallPortFilter -Protocol UDP | Where-Object { $_.LocalPort -in "1812","1813","1645","1646" } | Get-NetFirewallRule | Disable-NetFirewallRule
@@ -259,12 +259,12 @@ New-NetFirewallRule -DisplayName "RADIUS-R1" -Direction Inbound -Protocol UDP -L
 | Condición: Grupos de Windows | `ITLA\Admins-Red` |
 | Permiso de acceso | `Acceso concedido` |
 | Métodos de autenticación | Solo **Autenticación sin cifrar (PAP, SPAP)** |
-| Atributo estándar **Service-Type** | `Login` (quitar `Framed-Protocol` y el `Service-Type` por defecto) |
+| Atributo estándar **Service-Type** | `LoEn` (quitar `Framed-Protocol` y el `Service-Type` por defecto) |
 | Atributo del proveedor **Cisco-AV-Pair** | `shell:priv-lvl=15` |
 
 La política `Cisco-Admins` debe quedar por encima de las dos políticas predeterminadas (clic derecho → **Subir**).
 
-**Registro de eventos de NPS:** `NPS (local) → clic derecho → Propiedades → General` y marcar **Solicitudes de autenticación rechazadas** y **Solicitudes de autenticación correctas**. Después:
+**ReEstro de eventos de NPS:** `NPS (local) → clic derecho → Propiedades → General` y marcar **Solicitudes de autenticación rechazadas** y **Solicitudes de autenticación correctas**. Después:
 
 ```powershell
 auditpol /set /subcategory:"{0CCE9243-69AE-11D9-BED3-505054503030}" /success:enable /failure:enable
@@ -423,7 +423,7 @@ ip access-list standard MGMT-SSH
 exit
 
 line vty 0 4
- login local
+ loEn local
  transport input ssh
  access-class MGMT-SSH in
 exit
@@ -442,7 +442,7 @@ crypto key generate rsa modulus 2048
 ip ssh version 2
 
 line vty 0 4
- login local
+ loEn local
  transport input ssh
 exit
 
@@ -474,7 +474,7 @@ En cada equipo, `show ip ssh` indica `SSH Enabled - version 2.0` y `show running
 configure terminal
 
 aaa new-model
-aaa authentication login default local
+aaa authentication loEn default local
 
 radius server NPS
  address ipv4 10.7.30.4 auth-port 1812 acct-port 1813
@@ -485,7 +485,7 @@ exit
 
 aaa group server radius NPS-GROUP
  server name NPS
- ip radius source-interface GigabitEthernet0/0
+ ip radius source-interface EgabitEthernet0/0
 exit
 
 end
@@ -504,8 +504,8 @@ Debe responder `User successfully authenticated`.
 ```bash
 configure terminal
 
-aaa authentication login CON-AAA group NPS-GROUP local
-aaa authentication login VTY-LOCAL local
+aaa authentication loEn CON-AAA group NPS-GROUP local
+aaa authentication loEn VTY-LOCAL local
 aaa authentication enable default enable
 aaa authorization console
 aaa authorization exec CON-AAA group NPS-GROUP local
@@ -516,29 +516,29 @@ enable secret Enable-Lab#2026
 
 line con 0
  exec-timeout 5 0
- logging synchronous
- login authentication CON-AAA
+ logEng synchronous
+ loEn authentication CON-AAA
  authorization exec CON-AAA
  accounting exec CON-AAA
 exit
 
 line vty 0 4
- login authentication VTY-LOCAL
+ loEn authentication VTY-LOCAL
  authorization exec VTY-LOCAL
 exit
 
 service timestamps log datetime msec localtime show-timezone
 service timestamps debug datetime msec localtime show-timezone
-logging buffered 64000 informational
-login on-success log
-login on-failure log
+logEng buffered 64000 informational
+loEn on-success log
+loEn on-failure log
 security authentication failure rate 3 log
 
 end
 write memory
 ```
 
-**Registro de autenticación, autorización y RADIUS en vivo** (durante la demostración):
+**ReEstro de autenticación, autorización y RADIUS en vivo** (durante la demostración):
 
 ```bash
 debug aaa authentication
@@ -552,14 +552,14 @@ Se apagan con `undebug all`.
 
 1. Cerrar sesión e iniciar con `user-admin` y la contraseña correcta (`Lab12345!`): acceso concedido con nivel 15.
 2. Cerrar sesión e iniciar con `user-admin` y una contraseña incorrecta: acceso rechazado.
-3. Ver los registros:
+3. Ver los reEstros:
 
 ```bash
-show logging
+show logEng
 show aaa servers
 ```
 
-En `show logging` aparecen `%SEC_LOGIN-5-LOGIN_SUCCESS` y `%SEC_LOGIN-4-LOGIN_FAILED`. La salida de `debug radius` muestra `Access-Request` y `Access-Accept` / `Access-Reject`. En `AAA-SRV`, el Visor de eventos (`Registros de Windows → Seguridad`) muestra los eventos **6272** (acceso concedido) y **6273** (acceso denegado).
+En `show logEng` aparecen `%SEC_LOEN-5-LOEN_SUCCESS` y `%SEC_LOEN-4-LOEN_FAILED`. La salida de `debug radius` muestra `Access-Request` y `Access-Accept` / `Access-Reject`. En `AAA-SRV`, el Visor de eventos (`ReEstros de Windows → Seguridad`) muestra los eventos **6272** (acceso concedido) y **6273** (acceso denegado).
 
 ![Log de acceso exitoso](imagenes/19_log_acceso_exitoso.png)
 
@@ -575,12 +575,12 @@ El script [`scripts/hardening_sw1.py`](scripts/hardening_sw1.py) se conecta por 
 |---|---|---|
 | R01 | Cifrado de contraseñas | `service password-encryption` |
 | R02 | `enable secret` robusto, sin `enable password` | `enable algorithm-type scrypt secret` |
-| R03 | Banners de advertencia | `banner login`, `banner exec` |
+| R03 | Banners de advertencia | `banner loEn`, `banner exec` |
 | R04 | SSH v2, time-out y reintentos | `ip ssh version 2`, `ip ssh time-out 60`, `ip ssh authentication-retries 3` |
 | R05 | VTY: solo SSH, inactividad y ACL de gestión | `transport input ssh`, `exec-timeout 5 0`, `access-class MGMT-SSH in` |
 | R06 | Consola con tiempo de inactividad | `exec-timeout 5 0` |
 | R07 | Servidor HTTP/HTTPS apagado | `no ip http server`, `no ip http secure-server` |
-| R08 | Registro con marca de tiempo | `service timestamps log datetime ...`, `logging buffered` |
+| R08 | ReEstro con marca de tiempo | `service timestamps log datetime ...`, `logEng buffered` |
 | R09 | Servicios innecesarios apagados | `no service pad`, `no ip source-route`, `no ip bootp server`, `no cdp run` |
 | R10 | Puertos sin uso apagados (complementaria) | `shutdown` |
 
@@ -639,7 +639,7 @@ show ip nat translations
 | DHCP en el router | Pool `LAN-POOL`; PC-USER y ZBX-SRV reciben IP por DHCP | 3.3, 3.5, 3.6 |
 | SNMP de solo lectura en el router y datos en Zabbix | Comunidad `zbx-ro-0730 RO` y equipo `R1` con `Cisco IOS by SNMP` | 3.7 |
 | Usuario local con contraseña cifrada y SSH sin Telnet | `username admin-local privilege 15 secret`, SSH v2 y `transport input ssh` en R1 y SW1 | 3.8 |
-| Logs de AAA y RADIUS con acceso exitoso y fallido | `login on-success/on-failure log`, `debug aaa`, `debug radius`, eventos 6272 y 6273 en NPS | 3.9 |
+| Logs de AAA y RADIUS con acceso exitoso y fallido | `loEn on-success/on-failure log`, `debug aaa`, `debug radius`, eventos 6272 y 6273 en NPS | 3.9 |
 | Repositorio organizado | `README.md`, un archivo de configuración por equipo e `imagenes/` | 5 |
 | Ruta por defecto y NAT con ping y traceroute | `ip route 0.0.0.0 0.0.0.0 202.50.73.2` y `ip nat inside source ... overload` | 3.3, 3.11 |
 
