@@ -516,7 +516,7 @@ enable secret Enable-Lab#2026
 
 line con 0
  exec-timeout 5 0
- login synchronous
+ logging synchronous
  login authentication CON-AAA
  authorization exec CON-AAA
  accounting exec CON-AAA
@@ -529,7 +529,7 @@ exit
 
 service timestamps log datetime msec localtime show-timezone
 service timestamps debug datetime msec localtime show-timezone
-login buffered 64000 informational
+logging buffered 64000 informational
 login on-success log
 login on-failure log
 security authentication failure rate 3 log
@@ -555,11 +555,11 @@ Se apagan con `undebug all`.
 3. Ver los reEstros:
 
 ```bash
-show login
+show loggin
 show aaa servers
 ```
 
-En `show logEng` aparecen `%SEC_LOEN-5-LOEN_SUCCESS` y `%SEC_LOEN-4-LOEN_FAILED`. La salida de `debug radius` muestra `Access-Request` y `Access-Accept` / `Access-Reject`. En `AAA-SRV`, el Visor de eventos (`ReEstros de Windows → Seguridad`) muestra los eventos **6272** (acceso concedido) y **6273** (acceso denegado).
+En `show logging` aparecen `%SEC_LOEN-5-LOEN_SUCCESS` y `%SEC_LOEN-4-LOEN_FAILED`. La salida de `debug radius` muestra `Access-Request` y `Access-Accept` / `Access-Reject`. En `AAA-SRV`, el Visor de eventos (`ReEstros de Windows → Seguridad`) muestra los eventos **6272** (acceso concedido) y **6273** (acceso denegado).
 
 ![Log de acceso exitoso](imagenes/19_log_acceso_exitoso.png)
 
