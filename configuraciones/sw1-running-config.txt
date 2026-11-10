@@ -1,0 +1,119 @@
+Current configuration : 1998 bytes
+!
+! Last configuration change at 16:32:32 UTC Tue Nov 10 2026 by admin-local
+!
+version 15.2
+no service pad
+service timestamps debug datetime msec localtime show-timezone
+service timestamps log datetime msec localtime show-timezone
+service password-encryption
+service compress-config
+!
+hostname SW1
+!
+boot-start-marker
+boot-end-marker
+!
+!
+logging buffered 64000 informational
+enable secret 9 $9$hmMYSDi/RzQJYx$CDMMZubMCPd3TfEUSIUBZuK7cRQh1DJ.Ti0pjmAx0aE
+!
+username admin-local privilege 15 secret 5 $1$jFdy$bQPW4mpj5coEGpJ3801e7/
+no aaa new-model
+!
+!
+!
+!
+!
+no ip source-route
+!
+!
+!
+no ip bootp server
+no ip domain-lookup
+ip domain-name itla.local
+ip cef
+no ipv6 cef
+!
+!
+!
+spanning-tree mode rapid-pvst
+spanning-tree extend system-id
+!
+no cdp run
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+interface Ethernet0/0
+ switchport access vlan 10
+ switchport mode access
+ spanning-tree portfast edge
+!
+interface Ethernet0/1
+ switchport access vlan 10
+ switchport mode access
+ spanning-tree portfast edge
+!
+interface Ethernet0/2
+ switchport access vlan 10
+ switchport mode access
+ spanning-tree portfast edge
+!
+interface Ethernet0/3
+ switchport access vlan 10
+ switchport mode access
+ spanning-tree portfast edge
+!
+interface Vlan10
+ description Gestion
+ ip address 10.7.30.3 255.255.255.0
+!
+ip default-gateway 10.7.30.2
+ip forward-protocol nd
+!
+no ip http server
+no ip http secure-server
+!
+ip ssh time-out 60
+ip ssh version 2
+ip ssh server algorithm encryption aes128-ctr aes192-ctr aes256-ctr
+ip ssh client algorithm encryption aes128-ctr aes192-ctr aes256-ctr
+!
+ip access-list standard MGMT-SSH
+ permit 10.7.30.4
+ permit 10.7.30.253
+ deny   any log
+!
+!
+!
+!
+!
+control-plane
+!
+banner exec ^CACCESO RESTRINGIDO. Solo personal autorizado. Toda actividad es registrada.^C
+banner login ^CACCESO RESTRINGIDO. Solo personal autorizado. Toda actividad es registrada.^C
+!
+line con 0
+ exec-timeout 5 0
+ logging synchronous
+line aux 0
+line vty 0 4
+ access-class MGMT-SSH in
+ exec-timeout 5 0
+ login local
+ transport input ssh
+!
+!
+!
+end
